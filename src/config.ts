@@ -42,6 +42,7 @@ export const SAVE_VERSION = 1;
 export function makeSeedState(): SaveState {
   return {
     version: SAVE_VERSION,
+    characterLevel: config.character.level,
     aurumPool: config.defaultAurumPool,
     unlocked: { ...SEED_UNLOCKS },
     baseAurumCost: config.aurumCostByTier.base,

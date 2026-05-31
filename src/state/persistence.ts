@@ -24,6 +24,7 @@ export function sanitize(raw: unknown): SaveState {
 
   return {
     version: SAVE_VERSION,
+    characterLevel: Math.max(1, Math.min(20, Math.floor(num(o.characterLevel, seed.characterLevel)))),
     aurumPool: Math.max(0, Math.floor(num(o.aurumPool, seed.aurumPool))),
     unlocked,
     baseAurumCost: Math.max(0, Math.floor(num(o.baseAurumCost, seed.baseAurumCost))),

@@ -48,12 +48,15 @@ const tornadoTiers = {
   funnelDie: 6, // 1d6 per caught, all tiers
   maxCaught: [3, 4, 4, 5],
   suctionDC: [16, 16, 21, 21], // Superior DC21 (+5) per player's choice (brief)
+  suctionFt: [5, 5, 10, 10], // suction reach (docx: within 5ft base, 10ft at Superior)
+  move: [20, 20, 25, 25], // bonus-action move per turn (docx: 20ft base, 25ft at Superior)
   hpGate: ["≤25%", "≤50%", "≤75%", "any"],
   duration: [3, 3, 3, 4],
 };
 
 const thunderTiers = {
   weapons: [1, 2, 3, 4],
+  range: [30, 30, 40, 40], // summon range in feet (docx: 30ft base, 40ft at Superior)
   originN: [2, 2, 3, 3], // d6 thunder — Superior 3d6 per player's choice (docx)
   lineN: [2, 3, 3, 3], // d6 shock
   chaining: ["—", "2", "3", "4"],
@@ -97,16 +100,16 @@ export function rollPower(key: PowerKey, level: TierLevel, inputs: Record<string
   const b = new RollBuilder(rng);
 
   if (key === "tornado") {
-    b.add({ label: "Self-heal", n: tornadoTiers.selfHealD8[t], sides: 8, type: "heal", heal: true, note: "raw d8 · no modifier" });
-    b.add({ label: "Contact", n: tornadoTiers.contactN[t], sides: 6, type: "shock", note: "creatures touched" });
+    b.add({ label: "Self-heal (on cast)", n: tornadoTiers.selfHealD8[t], sides: 8, type: "heal", heal: true, note: "raw d8 · no modifier" });
+    b.add({ label: "Contact (on cast)", n: tornadoTiers.contactN[t], sides: 6, type: "shock", note: "creatures touched" });
     const caught = inputs.caught ?? 0;
-    b.add({ label: "Funnel tick", n: 1, sides: tornadoTiers.funnelDie, type: "bludgeon", targets: caught, note: "Bludgeon · re-roll each turn it churns" });
+    b.add({ label: "Funnel Bludgeon (each turn)", n: 1, sides: tornadoTiers.funnelDie, type: "bludgeon", targets: caught, note: "re-roll each turn it churns" });
     return b.build();
   }
 
   if (key === "thunder") {
-    b.add({ label: "Origin blast", n: thunderTiers.originN[t], sides: 6, type: "thunder", note: "CON ½ — halve the thunder yourself" });
-    b.add({ label: "Teleport line", n: thunderTiers.lineN[t], sides: 6, type: "shock" });
+    b.add({ label: "Origin Blast (Thunder)", n: thunderTiers.originN[t], sides: 6, type: "thunder", note: "CON ½ — halve the thunder yourself" });
+    b.add({ label: "Teleport line (Lightning)", n: thunderTiers.lineN[t], sides: 6, type: "shock" });
     if (level === 4) b.reminder("Full circle", "+3d10 Shock to bounded creatures (if you complete the circle)", "shock");
     return b.build();
   }
@@ -129,9 +132,9 @@ export function rollPower(key: PowerKey, level: TierLevel, inputs: Record<string
 export function metaFor(key: PowerKey, level: TierLevel): string {
   const t = level - 1;
   if (key === "tornado")
-    return `Usable at <b>${tornadoTiers.hpGate[t]} HP</b> · self-heal <b>${tornadoTiers.selfHealD8[t]}d8</b>. Suction: STR save vs <b>DC ${tornadoTiers.suctionDC[t]}</b>. Up to <b>${tornadoTiers.maxCaught[t]}</b> held; lasts ${tornadoTiers.duration[t]} turns. Roll once each turn it churns.`;
+    return `Usable at <b>${tornadoTiers.hpGate[t]} HP</b> · Summon on caster. Move <b>${tornadoTiers.move[t]}ft/turn</b> as bonus action. Suction: S/M on contact or w/in <b>${tornadoTiers.suctionFt[t]}ft</b> on failed STR save vs <b>DC ${tornadoTiers.suctionDC[t]}</b>. Up to <b>${tornadoTiers.maxCaught[t]}</b> held. Lasts ${tornadoTiers.duration[t]} turns. Roll once each turn it churns.`;
   if (key === "thunder")
-    return `Spends a <b>1st-level slot</b> · <b>${thunderTiers.weapons[t]}</b> Spiritual Weapons (Shock, 1d8+4, attacked separately). Teleport blast — halve the thunder on a CON save.`;
+    return `Spends a <b>1st-level slot</b> · Summon <b>${thunderTiers.weapons[t]} Spiritual Weapon${thunderTiers.weapons[t] > 1 ? "s" : ""}</b> w/in <b>${thunderTiers.range[t]} feet</b>. Teleport blast — halve the thunder on a CON save.`;
   if (key === "coral")
     return `Spends a <b>2nd-level slot</b> · ${coralTiers.formations[t]} formation${coralTiers.formations[t] > 1 ? "s" : ""}. Allies within 10ft: <b>+${coralTiers.allyMeleeN[t]}d4 Shock</b> on melee. Your Shock spells in the field gain <b>${coralTiers.fieldBonus[t]}</b>.`;
   return "";

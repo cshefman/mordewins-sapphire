@@ -65,6 +65,8 @@ export interface RollOutput {
 /** Persisted, user-mutable state. */
 export interface SaveState {
   version: number;
+  /** Character level (player edits this; gates tier unlocks — e.g. Ultimate needs 11). */
+  characterLevel: number;
   /** Current Aurum total (player edits this; gained from Keith). */
   aurumPool: number;
   /** Unlocked tier level per power. */

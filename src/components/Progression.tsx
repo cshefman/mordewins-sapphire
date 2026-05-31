@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { IconChevronLeft, IconDownload, IconUpload } from "@tabler/icons-react";
-import { config, RULES_CONFLICTS } from "../config";
+import { config } from "../config";
 import { POWERS, POWER_ORDER, SHORT_NAME, TIER_REFERENCE } from "../powers";
 import { exportJSON, importJSON } from "../state/persistence";
 import { costForTier, unlockInfo } from "../state/unlock";
@@ -72,7 +72,15 @@ export function Progression({ state, dispatch, onBack }: Props) {
             <button className="undo-btn" onClick={() => dispatch({ type: "addAurum", delta: -1 })}>−1</button>
           </div>
         </div>
-        <div style={{ display: "flex", gap: 14, marginTop: 11, flexWrap: "wrap", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 12 }}>
+          <span style={{ fontFamily: "Cinzel", fontSize: 12.5, color: "var(--ink)" }}>Character level</span>
+          <div className="stepper" style={{ gap: 8 }}>
+            <button onClick={() => dispatch({ type: "setLevel", value: state.characterLevel - 1 })} aria-label="decrease level">−</button>
+            <b>{state.characterLevel}</b>
+            <button onClick={() => dispatch({ type: "setLevel", value: state.characterLevel + 1 })} aria-label="increase level">+</button>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 14, marginTop: 12, flexWrap: "wrap", alignItems: "center" }}>
           <label style={{ fontSize: 10.5, color: "var(--mut)", display: "flex", alignItems: "center", gap: 6 }}>
             Base-tier cost
             <input
@@ -92,13 +100,6 @@ export function Progression({ state, dispatch, onBack }: Props) {
           </label>
         </div>
       </div>
-
-      {/* Documented rules conflicts (brief Q4) */}
-      {RULES_CONFLICTS.map((c, i) => (
-        <div className="conflict" key={i}>
-          <b>Rules note</b> — {c.summary}
-        </div>
-      ))}
 
       {/* Power cards */}
       {POWER_ORDER.map((key) => (

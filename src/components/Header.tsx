@@ -3,15 +3,16 @@ import { config } from "../config";
 
 interface Props {
   aurum: number;
+  level: number;
   onManage: () => void;
 }
 
-export function Header({ aurum, onManage }: Props) {
+export function Header({ aurum, level, onManage }: Props) {
   return (
     <div className="hdr">
       <div className="who">
         <h1 style={{ whiteSpace: "nowrap" }}>Mordewin's Sapphire</h1>
-        <p>{config.character.subtitle}</p>
+        <p>Lvl {level} {config.character.class}</p>
       </div>
       <button className="aurum" onClick={onManage} title="Manage Aurum & tiers">
         <span className="pip" />

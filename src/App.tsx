@@ -33,7 +33,7 @@ export default function App() {
       <Sky ref={flashRef} />
 
       <div className="device">
-        <Header aurum={state.aurumPool} onManage={() => setView("prog")} />
+        <Header aurum={state.aurumPool} level={state.characterLevel} onManage={() => setView("prog")} />
 
         {view === "home" ? (
           <>

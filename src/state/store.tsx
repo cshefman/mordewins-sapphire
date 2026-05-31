@@ -8,6 +8,7 @@ import { refundForRelock, unlockInfo } from "./unlock";
 export type Action =
   | { type: "unlock"; power: PowerKey }
   | { type: "relock"; power: PowerKey }
+  | { type: "setLevel"; value: number }
   | { type: "setAurum"; value: number }
   | { type: "addAurum"; delta: number }
   | { type: "setBaseCost"; value: number }
@@ -38,6 +39,8 @@ export function reducer(state: SaveState, action: Action): SaveState {
         aurumPool: state.aurumPool + refund,
       };
     }
+    case "setLevel":
+      return { ...state, characterLevel: Math.max(1, Math.min(20, Math.floor(action.value || 1))) };
     case "setAurum":
       return { ...state, aurumPool: Math.max(0, Math.floor(action.value || 0)) };
     case "addAurum":

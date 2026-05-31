@@ -31,7 +31,7 @@ export function unlockInfo(state: SaveState, power: PowerKey): UnlockInfo {
   const levelReq = config.levelRequirement[nextTier];
 
   const reasons: string[] = [];
-  if (config.character.level < levelReq) reasons.push(`Requires level ${levelReq}`);
+  if (state.characterLevel < levelReq) reasons.push(`Requires level ${levelReq}`);
   if (state.aurumPool < cost) reasons.push(`Need ${cost} Aurum`);
 
   return { nextTier, cost, levelReq, reasons, ok: reasons.length === 0 };
