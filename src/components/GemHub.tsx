@@ -51,6 +51,7 @@ export const GemHub = forwardRef<GemHandle, Props>(function GemHub(
   const sapphireRef = useRef<HTMLDivElement>(null);
   const wiresRef = useRef<SVGSVGElement>(null);
   const fxRef = useRef<SVGSVGElement>(null);
+  const fxOverRef = useRef<SVGSVGElement>(null); // viewport overlay, paints above the drawer
   const pressTimer = useRef<number | null>(null);
 
   // stable wire midpoint jitter per node
@@ -88,9 +89,7 @@ export const GemHub = forwardRef<GemHandle, Props>(function GemHub(
     setTimeout(() => s.classList.remove("fire"), 680);
   }
 
-  function drawBolt(x1: number, y1: number, x2: number, y2: number) {
-    const fx = fxRef.current;
-    if (!fx) return;
+  function drawBolt(svg: SVGSVGElement, x1: number, y1: number, x2: number, y2: number) {
     const pts = boltPts(x1, y1, x2, y2, 7, 16);
     const d = "M" + pts.map((p) => p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" L ");
     const mk = (stroke: string, w: string) => {
@@ -105,8 +104,8 @@ export const GemHub = forwardRef<GemHandle, Props>(function GemHub(
     };
     const glow = mk("rgba(120,180,255,.55)", "7");
     const core = mk("#eaf6ff", "2");
-    fx.appendChild(glow);
-    fx.appendChild(core);
+    svg.appendChild(glow);
+    svg.appendChild(core);
     setTimeout(() => {
       glow.remove();
       core.remove();
@@ -116,23 +115,41 @@ export const GemHub = forwardRef<GemHandle, Props>(function GemHub(
   function dramatize(key: PowerKey) {
     pulse();
     fireFlash();
-    const fx = fxRef.current;
-    if (fx) {
+
+    // Render the activation burst on the viewport overlay (above the drawer), in screen
+    // pixels measured from the DOM — the overlay has no viewBox, so its units are CSS px.
+    const over = fxOverRef.current;
+    const gem = sapphireRef.current;
+    if (over && gem) {
+      const ob = over.getBoundingClientRect(); // origin offset (handles transformed ancestors)
+      const gr = gem.getBoundingClientRect();
+      const gx = gr.left + gr.width / 2 - ob.left;
+      const gy = gr.top + gr.height / 2 - ob.top;
+
+      // shockwave ring centred on the gem
       const ring = document.createElementNS(SVGNS, "circle");
-      ring.setAttribute("cx", String(CX));
-      ring.setAttribute("cy", String(CY));
+      ring.setAttribute("cx", String(gx));
+      ring.setAttribute("cy", String(gy));
       ring.setAttribute("r", "16");
       ring.setAttribute("fill", "none");
       ring.setAttribute("stroke", "#bfe3ff");
       ring.setAttribute("stroke-width", "3");
       ring.setAttribute("class", "ring");
-      ring.style.transformOrigin = `${CX}px ${CY}px`;
-      fx.appendChild(ring);
+      ring.style.transformOrigin = `${gx}px ${gy}px`;
+      over.appendChild(ring);
       setTimeout(() => ring.remove(), 660);
+
+      // forked bolt from the firing node's icon to the gem
+      const disc = document.querySelector<HTMLElement>(`[data-node="${key}"] .disc`);
+      if (disc) {
+        const nr = disc.getBoundingClientRect();
+        const nx = nr.left + nr.width / 2 - ob.left;
+        const ny = nr.top + nr.height / 2 - ob.top;
+        drawBolt(over, nx, ny, gx, gy);
+      }
     }
-    const n = POWERS[key].node;
-    drawBolt((SW * n.x) / 100, (SH * n.y) / 100, CX, CY);
-    // briefly light the wire
+
+    // briefly light the wire (in-stage, behind the drawer — unchanged)
     const wire = wiresRef.current?.querySelector<SVGPathElement>(`path[data-key="${key}"]`);
     if (wire) {
       wire.setAttribute("stroke", "rgba(190,225,255,.95)");
@@ -202,6 +219,12 @@ export const GemHub = forwardRef<GemHandle, Props>(function GemHub(
         })}
       </svg>
       <svg className="fx" ref={fxRef} viewBox={`0 0 ${SW} ${SH}`} preserveAspectRatio="none" />
+      {/* viewport-level activation overlay — paints above the drawer (z 8); px coordinate space */}
+      <svg
+        className="fx-over"
+        ref={fxOverRef}
+        style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", pointerEvents: "none", zIndex: 60 }}
+      />
 
       <div className="sapphire" ref={sapphireRef} onClick={pulse} title="Mordewin's Sapphire">
         <img className="gemArt" src={gemArt} alt="Mordewin's Sapphire" width={156} />
@@ -219,6 +242,7 @@ export const GemHub = forwardRef<GemHandle, Props>(function GemHub(
           <div
             key={key}
             className={cls}
+            data-node={key}
             style={{
               left: `calc(${meta.node.x}% - 42px)`,
               top: `calc(${meta.node.y}% - 36px)`,
